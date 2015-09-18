@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>items</key>
+	<array>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerCellClass</key>
+			<string>DefaultPageCustomCell</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.dgh0st.defaultpage</string>
+			<key>key</key>
+			<string>isEnabled</string>
+			<key>label</key>
+			<string>Enable</string>
+			<key>PostNotification</key>
+			<string>com.dgh0st.defaultpage/settingschanged</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Page Number</string>
+			<key>footerText</key>
+			<string>Select a default page number</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSLinkListCell</string>
+			<key>key</key>
+			<string>pageNumber</string>
+			<key>label</key>
+			<string>Default Page</string>
+			<key>detail</key>
+			<string>PSListItemsController</string>
+			<key>validTitles</key>
+				<array>
+					<string>One</string>
+					<string>Two</string>
+					<string>Three</string>
+					<string>Four</string>
+					<string>Five</string>
+					<string>Six</string>
+					<string>Seven</string>
+					<string>Eight</string>
+					<string>Nine</string>
+					<string>Ten</string>
+				</array>
+			<key>validValues</key>
+				<array>
+					<integer>0</integer>
+					<integer>1</integer>
+					<integer>2</integer>
+					<integer>3</integer>
+					<integer>4</integer>
+					<integer>5</integer>
+					<integer>6</integer>
+					<integer>7</integer>
+					<integer>8</integer>
+					<integer>9</integer>
+				</array>
+			<key>default</key>
+			<integer>0</integer>
+			<key>defaults</key>
+			<string>com.dgh0st.defaultpage</string>
+			<key>PostNotification</key>
+			<string>com.dgh0st.defaultpage/settingschanged</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Folder</string>
+			<key>footerText</key>
+			<string>Folder paging enables home button press to redirect to a different page in the folder.
+
+Same page close closes out of the folder when home button is pressed.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.dgh0st.defaultpage</string>
+			<key>key</key>
+			<string>isFolderPagingEnabled</string>
+			<key>label</key>
+			<string>Folder paging</string>
+			<key>PostNotification</key>
+			<string>com.dgh0st.defaultpage/settingschanged</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.dgh0st.defaultpage</string>
+			<key>key</key>
+			<string>isPageNumberFolderCloseEnabled</string>
+			<key>label</key>
+			<string>Same Page Close</string>
+			<key>PostNotification</key>
+			<string>com.dgh0st.defaultpage/settingschanged</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Extra</string>
+			<key>footerText</key>
+			<string>Unlock reset will reset to the selected page on device unlock.
+
+Auto page will find the closest valid page.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.dgh0st.defaultpage</string>
+			<key>key</key>
+			<string>isUnlockResetEnabled</string>
+			<key>label</key>
+			<string>Unlock Reset</string>
+			<key>PostNotification</key>
+			<string>com.dgh0st.defaultpage/settingschanged</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.dgh0st.defaultpage</string>
+			<key>key</key>
+			<string>isAutoSubtractEnabled</string>
+			<key>label</key>
+			<string>Auto Page</string>
+			<key>PostNotification</key>
+			<string>com.dgh0st.defaultpage/settingschanged</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Credits</string>
+			<key>footerText</key>
+			<string>Enjoy the tweak :)</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSLinkCell</string>
+			<key>action</key>
+			<string>email</string>
+			<key>label</key>
+			<string>Email Support</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSLinkCell</string>
+			<key>action</key>
+			<string>donate</string>
+			<key>label</key>
+			<string>Donate</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSLinkCell</string>
+			<key>action</key>
+			<string>follow</string>
+			<key>label</key>
+			<string>Follow on twitter</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerAlignment</key>
+			<integer>1</integer>
+			<key>footerText</key>
+			<string>DefaultPage Â© 2015 DGh0st</string>
+		</dict>
+	</array>
+	<key>title</key>
+	<string>DefaultPage</string>
+</dict>
+</plist>

@@ -6,7 +6,6 @@
 -(NSInteger)currentIconListIndex;
 -(NSInteger)currentFolderIconListIndex;
 -(void)_runScrollFolderTest:(NSInteger)arg1;
--(NSInteger)maxListCountForFolders;
 @end
 
 static NSString *const identifier = @"com.dgh0st.defaultpage";
@@ -16,8 +15,6 @@ static NSString *const kIsPageNumberFolderCloseEnabled = @"isPageNumberFolderClo
 static NSString *const kIsUnlockResetEnabled = @"isUnlockResetEnabled";
 static NSString *const kIsAutoSubtractEnabled = @"isAutoSubtractEnabled";
 static NSString *const kPageNumber = @"pageNumber";
-
-static BOOL noPreferences = YES;
 
 static void PreferencesChanged() {
 	CFPreferencesAppSynchronize(CFSTR("com.dgh0st.defaultpage"));
@@ -61,16 +58,6 @@ static NSInteger intValueForKey(NSString *key, NSInteger defaultValue){
 }
 -(void)_lockScreenUIWillLock:(id)arg1{
 	%orig;
-	if(noPreferences){
-		UIAlertView *alert = [[%c(UIAlertView) alloc] initWithTitle:@"DefaultPage"
-		message:@"Select your default page in the settings."
-		delegate:nil
-		cancelButtonTitle:@"Okay"
-		otherButtonTitles:nil];
-		[alert show];
-		[alert release];
-		noPreferences = NO;	
-	}
 	if(boolValueForKey(kIsEnabled)){
 		NSInteger pageNum = intValueForKey(kPageNumber, 0);
 		if(boolValueForKey(kIsUnlockResetEnabled) && [self _iconListIndexIsValid: pageNum] && [self currentIconListIndex] != pageNum){

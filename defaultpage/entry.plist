@@ -1,0 +1,10 @@
+{
+    entry = {
+	bundle = DefaultPage;
+	cell = PSLinkCell;
+	detail = DefaultPageListController;
+	icon = DefaultPage.png;
+	isController = 1;
+	label = DefaultPage;
+    };
+}

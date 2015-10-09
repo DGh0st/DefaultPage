@@ -22,12 +22,16 @@ static void PreferencesChanged() {
 
 static BOOL boolValueForKey(NSString *key){
 	NSNumber *result = (__bridge NSNumber *)CFPreferencesCopyAppValue((CFStringRef)key, (CFStringRef)identifier);
-	return result ? [result boolValue] : NO;
+	BOOL temp = result ? [result boolValue] : NO;
+	[result release];
+	return temp;
 }
 
 static NSInteger intValueForKey(NSString *key, NSInteger defaultValue){
 	NSNumber *result= (__bridge NSNumber *)CFPreferencesCopyAppValue((CFStringRef)key, (CFStringRef)identifier);
-	return result ? [result intValue] : defaultValue;
+	NSInteger temp = result ? [result intValue] : defaultValue;
+	[result release];
+	return temp;
 }
 
 %hook SBIconController

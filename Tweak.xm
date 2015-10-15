@@ -41,7 +41,7 @@ static NSInteger intValueForKey(NSString *key, NSInteger defaultValue){
 		while(boolValueForKey(kIsAutoSubtractEnabled) && ![self _iconListIndexIsValid:pageNum]){
 			pageNum--;
 		}
-		if([self isNewsstandOpen] || (!boolValueForKey(kIsFolderPagingEnabled) && [self hasOpenFolder])){
+		if(([%c(self) respondsToSelector:@selector(isNewsstandOpen)] && [self isNewsstandOpen]) || (!boolValueForKey(kIsFolderPagingEnabled) && [self hasOpenFolder])){
 			%orig;
 		} else 	if(boolValueForKey(kIsFolderPagingEnabled) && [self hasOpenFolder]){
 			if(boolValueForKey(kIsPageNumberFolderCloseEnabled) && [self currentFolderIconListIndex] == pageNum){

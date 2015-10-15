@@ -192,7 +192,7 @@ Auto page will find the closest valid page.</string>
 			<key>footerAlignment</key>
 			<integer>1</integer>
 			<key>footerText</key>
-			<string>DefaultPage Â© 2015 DGh0st</string>
+			<string>DefaultPage © 2015 DGh0st</string>
 		</dict>
 	</array>
 	<key>title</key>

@@ -6,6 +6,7 @@
 -(NSInteger)currentIconListIndex;
 -(NSInteger)currentFolderIconListIndex;
 -(void)_runScrollFolderTest:(NSInteger)arg1;
+-(_Bool)_presentRightEdgeSpotlight:(_Bool)arg1;
 @end
 
 static NSString *const identifier = @"com.dgh0st.defaultpage";
@@ -14,6 +15,7 @@ static NSString *const kIsFolderPagingEnabled = @"isFolderPagingEnabled";
 static NSString *const kIsPageNumberFolderCloseEnabled = @"isPageNumberFolderCloseEnabled";
 static NSString *const kIsUnlockResetEnabled = @"isUnlockResetEnabled";
 static NSString *const kIsAutoSubtractEnabled = @"isAutoSubtractEnabled";
+static NSString *const kIsAppCloseResetEnabled = @"isAppCloseResetEnabled";
 static NSString *const kPageNumber = @"pageNumber";
 
 static void PreferencesChanged() {
@@ -38,13 +40,13 @@ static NSInteger intValueForKey(NSString *key, NSInteger defaultValue){
 -(void)handleHomeButtonTap{
 	if(boolValueForKey(kIsEnabled)){
 		NSInteger pageNum = intValueForKey(kPageNumber, 0);
-		while(boolValueForKey(kIsAutoSubtractEnabled) && ![self _iconListIndexIsValid:pageNum]){
+		while(boolValueForKey(kIsAutoSubtractEnabled) && ![self _iconListIndexIsValid:pageNum] && pageNum > 0){
 			pageNum--;
 		}
 		if(([%c(self) respondsToSelector:@selector(isNewsstandOpen)] && [self isNewsstandOpen]) || (!boolValueForKey(kIsFolderPagingEnabled) && [self hasOpenFolder])){
 			%orig;
 		} else 	if(boolValueForKey(kIsFolderPagingEnabled) && [self hasOpenFolder]){
-			if(boolValueForKey(kIsPageNumberFolderCloseEnabled) && [self currentFolderIconListIndex] == pageNum){
+			if(boolValueForKey(kIsPageNumberFolderCloseEnabled) && ([self currentFolderIconListIndex] == pageNum || pageNum == -1)){
 				%orig;
 			} else if([self _iconListIndexIsValid:pageNum]){
 				while(boolValueForKey(kIsAutoSubtractEnabled) && ![self scrollToIconListAtIndex:pageNum animate:YES]){
@@ -52,6 +54,8 @@ static NSInteger intValueForKey(NSString *key, NSInteger defaultValue){
 				}
 				[self _runScrollFolderTest:pageNum];
 			}
+		} else if(pageNum == -1){
+			[self _presentRightEdgeSpotlight:YES];
 		} else if([self _iconListIndexIsValid: pageNum] && [self currentIconListIndex] != pageNum){
 			%orig;
 			[self scrollToIconListAtIndex:pageNum animate:YES];
@@ -60,11 +64,22 @@ static NSInteger intValueForKey(NSString *key, NSInteger defaultValue){
 		%orig;
 	}
 }
+
 -(void)_lockScreenUIWillLock:(id)arg1{
 	%orig;
 	if(boolValueForKey(kIsEnabled)){
 		NSInteger pageNum = intValueForKey(kPageNumber, 0);
 		if(boolValueForKey(kIsUnlockResetEnabled) && [self _iconListIndexIsValid: pageNum] && [self currentIconListIndex] != pageNum){
+			[self scrollToIconListAtIndex:pageNum animate:YES];
+		}
+	}
+}
+
+-(void)unscatterAnimated:(_Bool)arg1 afterDelay:(double)arg2 withCompletion:(id)arg3{
+	%orig(arg1, arg2, arg3);
+	if(boolValueForKey(kIsEnabled)){
+		NSInteger pageNum = intValueForKey(kPageNumber, 0);
+		if(boolValueForKey(kIsAppCloseResetEnabled) && [self _iconListIndexIsValid: pageNum] && [self currentIconListIndex] != pageNum){
 			[self scrollToIconListAtIndex:pageNum animate:YES];
 		}
 	}

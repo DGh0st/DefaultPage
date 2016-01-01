@@ -34,7 +34,8 @@
 			<key>label</key>
 			<string>Page Number</string>
 			<key>footerText</key>
-			<string>Select a default page number</string>
+			<string>Select a default page number.
+Note: Spotlight is only supported on ios 9.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -47,6 +48,7 @@
 			<string>PSListItemsController</string>
 			<key>validTitles</key>
 				<array>
+					<string>Spotlight</string>
 					<string>One</string>
 					<string>Two</string>
 					<string>Three</string>
@@ -60,6 +62,7 @@
 				</array>
 			<key>validValues</key>
 				<array>
+					<integer>-1</integer>
 					<integer>0</integer>
 					<integer>1</integer>
 					<integer>2</integer>
@@ -123,8 +126,8 @@ Same page close closes out of the folder when home button is pressed.</string>
 			<string>Extra</string>
 			<key>footerText</key>
 			<string>Unlock reset will reset to the selected page on device unlock.
-
-Auto page will find the closest valid page.</string>
+Auto page will find the closest valid page.
+Spotlight as a default page does not work with either one of these.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -151,6 +154,29 @@ Auto page will find the closest valid page.</string>
 			<string>isAutoSubtractEnabled</string>
 			<key>label</key>
 			<string>Auto Page</string>
+			<key>PostNotification</key>
+			<string>com.dgh0st.defaultpage/settingschanged</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Beta</string>
+			<key>footerText</key>
+			<string>App Close reset will reset to the selected page everytime homescreen is invoked (includes applications, app switcher and unlock).
+Spotlight as a default page does not work with this.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.dgh0st.defaultpage</string>
+			<key>key</key>
+			<string>isAppCloseResetEnabled</string>
+			<key>label</key>
+			<string>App Close Reset</string>
 			<key>PostNotification</key>
 			<string>com.dgh0st.defaultpage/settingschanged</string>
 		</dict>

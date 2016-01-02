@@ -76,13 +76,13 @@ static NSInteger intValueForKey(NSString *key, NSInteger defaultValue){
 }
 
 -(void)unscatterAnimated:(_Bool)arg1 afterDelay:(double)arg2 withCompletion:(id)arg3{
-	%orig(arg1, arg2, arg3);
 	if(boolValueForKey(kIsEnabled)){
 		NSInteger pageNum = intValueForKey(kPageNumber, 0);
 		if(boolValueForKey(kIsAppCloseResetEnabled) && [self _iconListIndexIsValid: pageNum] && [self currentIconListIndex] != pageNum){
-			[self scrollToIconListAtIndex:pageNum animate:YES];
+			[self scrollToIconListAtIndex:pageNum animate:NO];
 		}
 	}
+	%orig;
 }
 %end
 

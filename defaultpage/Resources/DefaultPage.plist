@@ -127,6 +127,7 @@ Same page close closes out of the folder when home button is pressed.</string>
 			<key>footerText</key>
 			<string>Unlock reset will reset to the selected page on device unlock.
 Auto page will find the closest valid page.
+App Close reset will reset to the selected page everytime homescreen is invoked (includes applications, app switcher and unlock).
 Spotlight as a default page does not work with either one of these.</string>
 		</dict>
 		<dict>
@@ -156,15 +157,6 @@ Spotlight as a default page does not work with either one of these.</string>
 			<string>Auto Page</string>
 			<key>PostNotification</key>
 			<string>com.dgh0st.defaultpage/settingschanged</string>
-		</dict>
-		<dict>
-			<key>cell</key>
-			<string>PSGroupCell</string>
-			<key>label</key>
-			<string>Beta</string>
-			<key>footerText</key>
-			<string>App Close reset will reset to the selected page everytime homescreen is invoked (includes applications, app switcher and unlock).
-Spotlight as a default page does not work with this.</string>
 		</dict>
 		<dict>
 			<key>cell</key>

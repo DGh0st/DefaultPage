@@ -127,7 +127,7 @@ Same page close closes out of the folder when home button is pressed.</string>
 			<key>footerText</key>
 			<string>Unlock reset will reset to the selected page on device unlock.
 Auto page will find the closest valid page.
-App Close reset will reset to the selected page everytime homescreen is invoked (includes applications, app switcher and unlock).
+App Close reset will reset to the selected page everytime homescreen is invoked (includes applications and app switcher).
 Spotlight as a default page does not work with either one of these.</string>
 		</dict>
 		<dict>

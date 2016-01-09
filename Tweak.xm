@@ -70,19 +70,30 @@ static NSInteger intValueForKey(NSString *key, NSInteger defaultValue){
 	if(boolValueForKey(kIsEnabled)){
 		NSInteger pageNum = intValueForKey(kPageNumber, 0);
 		if(boolValueForKey(kIsUnlockResetEnabled) && [self _iconListIndexIsValid: pageNum] && [self currentIconListIndex] != pageNum){
-			[self scrollToIconListAtIndex:pageNum animate:YES];
+			[self scrollToIconListAtIndex:pageNum animate:NO];
 		}
 	}
 }
 
--(id)contentView{
+
+-(void)_launchIcon:(id)arg1{
 	if(boolValueForKey(kIsEnabled)){
 		NSInteger pageNum = intValueForKey(kPageNumber, 0);
 		if(boolValueForKey(kIsAppCloseResetEnabled) && [self _iconListIndexIsValid: pageNum] && [self currentIconListIndex] != pageNum){
 			[self scrollToIconListAtIndex:pageNum animate:NO];
 		}
 	}
-	return %orig;
+	%orig(arg1);
+}
+
+-(void)unscatterAnimated:(_Bool)arg1 afterDelay:(double)arg2 withCompletion:(id)arg3{
+	if(boolValueForKey(kIsEnabled)){
+		NSInteger pageNum = intValueForKey(kPageNumber, 0);
+		if(boolValueForKey(kIsAppCloseResetEnabled) && [self _iconListIndexIsValid: pageNum] && [self currentIconListIndex] != pageNum){
+			[self scrollToIconListAtIndex:pageNum animate:NO];
+		}
+	}
+	%orig(arg1, arg2, arg3);
 }
 %end
 

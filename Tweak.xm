@@ -77,7 +77,7 @@ static NSInteger intValueForKey(NSString *key, NSInteger defaultValue){
 
 
 -(void)_launchIcon:(id)arg1{
-	if(boolValueForKey(kIsEnabled)){
+	if(boolValueForKey(kIsEnabled) && ![[arg1 class] isEqual: %c(SBFolderIcon)]){
 		NSInteger pageNum = intValueForKey(kPageNumber, 0);
 		if(boolValueForKey(kIsAppCloseResetEnabled) && [self _iconListIndexIsValid: pageNum] && [self currentIconListIndex] != pageNum){
 			[self scrollToIconListAtIndex:pageNum animate:NO];

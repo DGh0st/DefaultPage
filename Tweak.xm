@@ -1,3 +1,5 @@
+#include <SpringBoard/SpringBoard.h>
+
 @interface SBIconController
 -(BOOL)isNewsstandOpen;
 -(BOOL)hasOpenFolder;
@@ -9,11 +11,20 @@
 -(_Bool)_presentRightEdgeSpotlight:(_Bool)arg1;
 @end
 
+@interface UIApplication (DefaultPage)
++(id)sharedApplication;
+@end
+
+@interface SpringBoard (DefaultPage)
+-(void)_handleMenuButtonEvent;
+@end
+
 static NSString *const identifier = @"com.dgh0st.defaultpage";
 static NSString *const kIsEnabled = @"isEnabled";
 static NSString *const kIsFolderPagingEnabled = @"isFolderPagingEnabled";
 static NSString *const kIsPageNumberFolderCloseEnabled = @"isPageNumberFolderCloseEnabled";
 static NSString *const kIsUnlockResetEnabled = @"isUnlockResetEnabled";
+static NSString *const kIsForceHomescreenEnabled = @"isForceHomescreenEnabled";
 static NSString *const kIsAutoSubtractEnabled = @"isAutoSubtractEnabled";
 static NSString *const kIsAppCloseResetEnabled = @"isAppCloseResetEnabled";
 static NSString *const kPageNumber = @"pageNumber";
@@ -66,6 +77,9 @@ static NSInteger intValueForKey(NSString *key, NSInteger defaultValue){
 }
 
 -(void)_lockScreenUIWillLock:(id)arg1{
+	if (boolValueForKey(kIsEnabled) && boolValueForKey(kIsForceHomescreenEnabled)) {
+		[(SpringBoard *)[%c(UIApplication) sharedApplication] _handleMenuButtonEvent];
+	}
 	%orig;
 	if(boolValueForKey(kIsEnabled)){
 		NSInteger pageNum = intValueForKey(kPageNumber, 0);

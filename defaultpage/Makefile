@@ -1,5 +1,5 @@
 GO_EASY_ON_ME = 1
-include theos/makefiles/common.mk
+include $(THEOS)/makefiles/common.mk
 
 BUNDLE_NAME = DefaultPage
 DefaultPage_FILES = DefaultPage.mm

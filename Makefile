@@ -1,9 +1,9 @@
 export ARCHS = armv7 arm64
-export TARGET = iphone:clang:latest:latest
+export TARGET = iphone:clang:8.1:latest
 
-PACKAGE_VERSION = 0.0.8-2
+PACKAGE_VERSION = 0.0.9
 
-include theos/makefiles/common.mk
+include $(THEOS)/makefiles/common.mk
 
 TWEAK_NAME = DefaultPage
 DefaultPage_FILES = Tweak.xm

@@ -9,6 +9,12 @@
 -(NSInteger)currentFolderIconListIndex;
 -(void)_runScrollFolderTest:(NSInteger)arg1;
 -(_Bool)_presentRightEdgeSpotlight:(_Bool)arg1;
+-(id)insertIcon:(id)arg1 intoListView:(id)arg2 iconIndex:(NSInteger)arg3 moveNow:(BOOL)arg4 ;
+-(id)insertIcon:(id)arg1 intoListView:(id)arg2 iconIndex:(NSInteger)arg3 moveNow:(BOOL)arg4 pop:(BOOL)arg5 ;
+-(id)iconListViewAtIndex:(NSInteger)arg1 inFolder:(id)arg2 createIfNecessary:(BOOL)arg3 ;
+-(id)rootFolder;
+-(NSInteger)maxIconCountForListInFolderClass:(Class)arg1 ;
+-(void)removeIcon:(id)arg1 compactFolder:(BOOL)arg2 ;
 @end
 
 @interface UIApplication (DefaultPage)
@@ -27,7 +33,9 @@ static NSString *const kIsUnlockResetEnabled = @"isUnlockResetEnabled";
 static NSString *const kIsForceHomescreenEnabled = @"isForceHomescreenEnabled";
 static NSString *const kIsAutoSubtractEnabled = @"isAutoSubtractEnabled";
 static NSString *const kIsAppCloseResetEnabled = @"isAppCloseResetEnabled";
+static NSString *const kIsDefaultDownloadPage = @"isDefaultDownloadPage";
 static NSString *const kPageNumber = @"pageNumber";
+static NSString *const kDownloadPageNumber = @"downloadPageNumber";
 
 static void PreferencesChanged() {
 	CFPreferencesAppSynchronize(CFSTR("com.dgh0st.defaultpage"));
@@ -108,6 +116,19 @@ static NSInteger intValueForKey(NSString *key, NSInteger defaultValue){
 		}
 	}
 	%orig(arg1, arg2, arg3);
+}
+
+-(void)addNewIconToDesignatedLocation:(id)arg1 animate:(BOOL)arg2 scrollToList:(BOOL)arg3 saveIconState:(BOOL)arg4 {
+	if (boolValueForKey(kIsEnabled) && boolValueForKey(kIsDefaultDownloadPage)) {
+		NSInteger downloadPageNum = intValueForKey(kDownloadPageNumber, 0);
+		if (arg4) {
+			[self insertIcon:arg1 intoListView:[self iconListViewAtIndex:downloadPageNum inFolder:[self rootFolder] createIfNecessary:YES] iconIndex:([self maxIconCountForListInFolderClass:[[self rootFolder] class]] - 1) moveNow:YES pop:YES];
+		} else {
+			[self removeIcon:arg1 compactFolder:NO];
+			[self insertIcon:arg1 intoListView:[self iconListViewAtIndex:downloadPageNum inFolder:[self rootFolder] createIfNecessary:YES] iconIndex:([self maxIconCountForListInFolderClass:[[self rootFolder] class]] - 1) moveNow:YES];
+		}
+	}
+	%orig(arg1, arg2, arg3, arg4);
 }
 %end
 

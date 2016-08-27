@@ -119,7 +119,7 @@ static NSInteger intValueForKey(NSString *key, NSInteger defaultValue){
 }
 
 -(void)addNewIconToDesignatedLocation:(id)arg1 animate:(BOOL)arg2 scrollToList:(BOOL)arg3 saveIconState:(BOOL)arg4 {
-	if (boolValueForKey(kIsEnabled) && boolValueForKey(kIsDefaultDownloadPage)) {
+	if (boolValueForKey(kIsEnabled) && boolValueForKey(kIsDefaultDownloadPage) && [[arg1 class] isEqual:%c(SBDownloadingIcon)]) {
 		NSInteger downloadPageNum = intValueForKey(kDownloadPageNumber, 0);
 		if (arg4) {
 			[self insertIcon:arg1 intoListView:[self iconListViewAtIndex:downloadPageNum inFolder:[self rootFolder] createIfNecessary:YES] iconIndex:([self maxIconCountForListInFolderClass:[[self rootFolder] class]] - 1) moveNow:YES pop:YES];

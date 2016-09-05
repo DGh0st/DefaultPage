@@ -1,4 +1,9 @@
-#include <SpringBoard/SpringBoard.h>
+@interface ALApplicationList
+@property (nonatomic, readonly) NSDictionary *applications;
+-(id)sharedApplicationList;
+- (NSDictionary *)applicationsFilteredUsingPredicate:(NSPredicate *)predicate onlyVisible:(BOOL)onlyVisible titleSortedIdentifiers:(NSArray **)outSortedByTitle;
+@end
+
 
 @interface SBIconController
 -(BOOL)isNewsstandOpen;
@@ -21,8 +26,18 @@
 +(id)sharedApplication;
 @end
 
-@interface SpringBoard (DefaultPage)
+@interface SpringBoard
 -(void)_handleMenuButtonEvent;
+@end
+
+@interface SBLeafIcon
+-(id)applicationBundleID;
+@end
+
+@interface SBDownloadingIcon : SBLeafIcon
+@end
+
+@interface SBApplicationIcon : SBLeafIcon
 @end
 
 static NSString *const identifier = @"com.dgh0st.defaultpage";
@@ -119,14 +134,12 @@ static NSInteger intValueForKey(NSString *key, NSInteger defaultValue){
 }
 
 -(void)addNewIconToDesignatedLocation:(id)arg1 animate:(BOOL)arg2 scrollToList:(BOOL)arg3 saveIconState:(BOOL)arg4 {
-	if (boolValueForKey(kIsEnabled) && boolValueForKey(kIsDefaultDownloadPage) && [[arg1 class] isEqual:%c(SBDownloadingIcon)]) {
+	NSArray *sortedDisplayIdentifiers;
+	[[ALApplicationList sharedApplicationList] applicationsFilteredUsingPredicate:nil onlyVisible:YES titleSortedIdentifiers:&sortedDisplayIdentifiers];
+	if (boolValueForKey(kIsEnabled) && boolValueForKey(kIsDefaultDownloadPage) && ![sortedDisplayIdentifiers containsObject:[arg1 applicationBundleID]]) {
 		NSInteger downloadPageNum = intValueForKey(kDownloadPageNumber, 0);
-		if (arg4) {
-			[self insertIcon:arg1 intoListView:[self iconListViewAtIndex:downloadPageNum inFolder:[self rootFolder] createIfNecessary:YES] iconIndex:([self maxIconCountForListInFolderClass:[[self rootFolder] class]] - 1) moveNow:YES pop:YES];
-		} else {
-			[self removeIcon:arg1 compactFolder:NO];
-			[self insertIcon:arg1 intoListView:[self iconListViewAtIndex:downloadPageNum inFolder:[self rootFolder] createIfNecessary:YES] iconIndex:([self maxIconCountForListInFolderClass:[[self rootFolder] class]] - 1) moveNow:YES];
-		}
+		[self removeIcon:arg1 compactFolder:NO];
+		[self insertIcon:arg1 intoListView:[self iconListViewAtIndex:downloadPageNum inFolder:[self rootFolder] createIfNecessary:YES] iconIndex:([self maxIconCountForListInFolderClass:[[self rootFolder] class]] - 1) moveNow:YES];
 	}
 	%orig(arg1, arg2, arg3, arg4);
 }

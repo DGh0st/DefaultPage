@@ -87,8 +87,7 @@ Note: Spotlight is only supported on ios 9.</string>
 			<key>label</key>
 			<string>Download Page Number</string>
 			<key>footerText</key>
-			<string>Select a default page number to download new applications on.
-Known Bug: Icons sometimes move to selected download page on updating application.</string>
+			<string>Select a default page number to download new applications on.</string>
 		</dict>
 		<dict>
 			<key>cell</key>

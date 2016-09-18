@@ -112,25 +112,14 @@ static NSInteger intValueForKey(NSString *key, NSInteger defaultValue){
 	}
 }
 
-
--(void)_launchIcon:(id)arg1{
-	if(boolValueForKey(kIsEnabled) && ![[arg1 class] isEqual: %c(SBFolderIcon)]){
+-(void)viewWillAppear:(BOOL)arg1 {
+	if(boolValueForKey(kIsEnabled)) {
 		NSInteger pageNum = intValueForKey(kPageNumber, 0);
 		if(boolValueForKey(kIsAppCloseResetEnabled) && [self _iconListIndexIsValid: pageNum] && [self currentIconListIndex] != pageNum){
 			[self scrollToIconListAtIndex:pageNum animate:NO];
 		}
 	}
 	%orig(arg1);
-}
-
--(void)unscatterAnimated:(_Bool)arg1 afterDelay:(double)arg2 withCompletion:(id)arg3{
-	if(boolValueForKey(kIsEnabled)){
-		NSInteger pageNum = intValueForKey(kPageNumber, 0);
-		if(boolValueForKey(kIsAppCloseResetEnabled) && [self _iconListIndexIsValid: pageNum] && [self currentIconListIndex] != pageNum){
-			[self scrollToIconListAtIndex:pageNum animate:NO];
-		}
-	}
-	%orig(arg1, arg2, arg3);
 }
 
 -(void)addNewIconToDesignatedLocation:(id)arg1 animate:(BOOL)arg2 scrollToList:(BOOL)arg3 saveIconState:(BOOL)arg4 {

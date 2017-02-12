@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
-	<string>DefaultPage</string>
+	<string>defaultpage</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.dgh0st.defaultpage</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -18,11 +18,7 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>1.0</string>
-	<key>DTPlatformName</key>
-	<string>iphoneos</string>
-	<key>MinimumOSVersion</key>
-	<string>3.0</string>
 	<key>NSPrincipalClass</key>
-	<string>DefaultPageListController</string>
+	<string>DPRootListController</string>
 </dict>
 </plist>

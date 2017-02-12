@@ -1,3 +1,5 @@
+#include <notify.h>
+
 @interface ALApplicationList
 @property (nonatomic, readonly) NSDictionary *applications;
 -(id)sharedApplicationList;
@@ -15,11 +17,16 @@
 -(void)_runScrollFolderTest:(NSInteger)arg1;
 -(_Bool)_presentRightEdgeSpotlight:(_Bool)arg1;
 -(id)insertIcon:(id)arg1 intoListView:(id)arg2 iconIndex:(NSInteger)arg3 moveNow:(BOOL)arg4 ;
--(id)insertIcon:(id)arg1 intoListView:(id)arg2 iconIndex:(NSInteger)arg3 moveNow:(BOOL)arg4 pop:(BOOL)arg5 ;
 -(id)iconListViewAtIndex:(NSInteger)arg1 inFolder:(id)arg2 createIfNecessary:(BOOL)arg3 ;
 -(id)rootFolder;
 -(NSInteger)maxIconCountForListInFolderClass:(Class)arg1 ;
 -(void)removeIcon:(id)arg1 compactFolder:(BOOL)arg2 ;
+-(id)folderIconListAtIndex:(NSInteger)arg1 ;
+-(id)_currentFolderController;
+@end
+
+@interface SBFolderController
+-(void)_doAutoScrollByPageCount:(NSInteger)arg1 ;
 @end
 
 @interface UIApplication (DefaultPage)
@@ -28,6 +35,8 @@
 
 @interface SpringBoard
 -(void)_handleMenuButtonEvent;
+-(void)_simulateHomeButtonPress;
+-(BOOL)respondsToSelector:(SEL)aSelector;
 @end
 
 @interface SBLeafIcon
@@ -71,7 +80,7 @@ static NSInteger intValueForKey(NSString *key, NSInteger defaultValue){
 }
 
 %hook SBIconController
--(void)handleHomeButtonTap{
+-(void)handleHomeButtonTap {
 	if(boolValueForKey(kIsEnabled)){
 		NSInteger pageNum = intValueForKey(kPageNumber, 0);
 		while(boolValueForKey(kIsAutoSubtractEnabled) && ![self _iconListIndexIsValid:pageNum] && pageNum > 0){
@@ -80,13 +89,14 @@ static NSInteger intValueForKey(NSString *key, NSInteger defaultValue){
 		if(([%c(self) respondsToSelector:@selector(isNewsstandOpen)] && [self isNewsstandOpen]) || (!boolValueForKey(kIsFolderPagingEnabled) && [self hasOpenFolder])){
 			%orig;
 		} else 	if(boolValueForKey(kIsFolderPagingEnabled) && [self hasOpenFolder]){
+			pageNum = intValueForKey(kPageNumber, 0);
 			if(boolValueForKey(kIsPageNumberFolderCloseEnabled) && ([self currentFolderIconListIndex] == pageNum || pageNum == -1)){
 				%orig;
-			} else if([self _iconListIndexIsValid:pageNum]){
-				while(boolValueForKey(kIsAutoSubtractEnabled) && ![self scrollToIconListAtIndex:pageNum animate:YES]){
+			} else {
+				while(boolValueForKey(kIsAutoSubtractEnabled) && ![self folderIconListAtIndex:pageNum]){
 					pageNum--;
 				}
-				[self _runScrollFolderTest:pageNum];
+				[[self _currentFolderController] _doAutoScrollByPageCount:pageNum - [self currentFolderIconListIndex]];
 			}
 		} else if(pageNum == -1){
 			[self _presentRightEdgeSpotlight:YES];
@@ -101,9 +111,13 @@ static NSInteger intValueForKey(NSString *key, NSInteger defaultValue){
 
 -(void)_lockScreenUIWillLock:(id)arg1{
 	if (boolValueForKey(kIsEnabled) && boolValueForKey(kIsForceHomescreenEnabled)) {
-		[(SpringBoard *)[%c(UIApplication) sharedApplication] _handleMenuButtonEvent];
+		if ([(SpringBoard *)[%c(UIApplication) sharedApplication] respondsToSelector:@selector(_handleMenuButtonEvent)]) {
+			[(SpringBoard *)[%c(UIApplication) sharedApplication] _handleMenuButtonEvent];
+		} else {
+			[(SpringBoard *)[%c(UIApplication) sharedApplication] _simulateHomeButtonPress];
+		}
 	}
-	%orig;
+	%orig(arg1);
 	if(boolValueForKey(kIsEnabled)){
 		NSInteger pageNum = intValueForKey(kPageNumber, 0);
 		if(boolValueForKey(kIsUnlockResetEnabled) && [self _iconListIndexIsValid: pageNum] && [self currentIconListIndex] != pageNum){
@@ -133,6 +147,25 @@ static NSInteger intValueForKey(NSString *key, NSInteger defaultValue){
 	%orig(arg1, arg2, arg3, arg4);
 }
 %end
+
+%hook SBDashBoardViewController
+-(void)deactivate {
+	if (boolValueForKey(kIsEnabled) && boolValueForKey(kIsForceHomescreenEnabled)) {
+		if ([(SpringBoard *)[%c(UIApplication) sharedApplication] respondsToSelector:@selector(_handleMenuButtonEvent)]) {
+			[(SpringBoard *)[%c(UIApplication) sharedApplication] _handleMenuButtonEvent];
+		} else {
+			[(SpringBoard *)[%c(UIApplication) sharedApplication] _simulateHomeButtonPress];
+		}
+	}
+}
+%end
+
+%dtor {
+	CFNotificationCenterRemoveObserver(CFNotificationCenterGetDarwinNotifyCenter(),
+										NULL,
+										CFSTR("com.dgh0st.defaultpage/settingschanged"),
+										NULL);
+}
 
 %ctor {
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),

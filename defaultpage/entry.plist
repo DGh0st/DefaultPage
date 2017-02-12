@@ -1,10 +1,21 @@
-{
-    entry = {
-	bundle = DefaultPage;
-	cell = PSLinkCell;
-	detail = DefaultPageListController;
-	icon = DefaultPage.png;
-	isController = 1;
-	label = DefaultPage;
-    };
-}
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>entry</key>
+	<dict>
+		<key>bundle</key>
+		<string>defaultpage</string>
+		<key>cell</key>
+		<string>PSLinkCell</string>
+		<key>detail</key>
+		<string>DPRootListController</string>
+		<key>icon</key>
+		<string>DefaultPage.png</string>
+		<key>isController</key>
+		<true/>
+		<key>label</key>
+		<string>DefaultPage</string>
+	</dict>
+</dict>
+</plist>

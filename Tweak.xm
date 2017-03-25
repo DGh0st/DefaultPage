@@ -157,6 +157,7 @@ static NSInteger intValueForKey(NSString *key, NSInteger defaultValue){
 			[(SpringBoard *)[%c(UIApplication) sharedApplication] _simulateHomeButtonPress];
 		}
 	}
+	%orig;
 }
 %end
 

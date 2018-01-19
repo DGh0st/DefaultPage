@@ -3,30 +3,33 @@
 @interface ALApplicationList
 @property (nonatomic, readonly) NSDictionary *applications;
 -(id)sharedApplicationList;
-- (NSDictionary *)applicationsFilteredUsingPredicate:(NSPredicate *)predicate onlyVisible:(BOOL)onlyVisible titleSortedIdentifiers:(NSArray **)outSortedByTitle;
+-(NSDictionary *)applicationsFilteredUsingPredicate:(NSPredicate *)predicate onlyVisible:(BOOL)onlyVisible titleSortedIdentifiers:(NSArray **)outSortedByTitle;
 @end
 
 
-@interface SBIconController
+@interface SBIconController : UIViewController 
 -(BOOL)isNewsstandOpen;
 -(BOOL)hasOpenFolder;
 -(BOOL)_iconListIndexIsValid:(NSInteger)arg1;
 -(BOOL)scrollToIconListAtIndex:(NSInteger)arg1 animate:(BOOL)arg2;
 -(NSInteger)currentIconListIndex;
 -(NSInteger)currentFolderIconListIndex;
--(void)_runScrollFolderTest:(NSInteger)arg1;
 -(_Bool)_presentRightEdgeSpotlight:(_Bool)arg1;
+-(_Bool)_presentRightEdgeTodayView:(_Bool)arg1;
 -(id)insertIcon:(id)arg1 intoListView:(id)arg2 iconIndex:(NSInteger)arg3 moveNow:(BOOL)arg4 ;
 -(id)iconListViewAtIndex:(NSInteger)arg1 inFolder:(id)arg2 createIfNecessary:(BOOL)arg3 ;
 -(id)rootFolder;
--(NSInteger)maxIconCountForListInFolderClass:(Class)arg1 ;
--(void)removeIcon:(id)arg1 compactFolder:(BOOL)arg2 ;
+-(NSInteger)maxIconCountForListInFolderClass:(Class)arg1;
+-(void)removeIcon:(id)arg1 compactFolder:(BOOL)arg2;
+-(void)removeIcon:(id)arg1 options:(unsigned long long)arg2;
 -(id)folderIconListAtIndex:(NSInteger)arg1 ;
 -(id)_currentFolderController;
 @end
 
 @interface SBFolderController
--(void)_doAutoScrollByPageCount:(NSInteger)arg1 ;
+@property(readonly, nonatomic) NSInteger currentPageIndex;
+-(BOOL)setCurrentPageIndex:(NSInteger)arg1 animated:(BOOL)arg2;
+-(void)_doAutoScrollByPageCount:(NSInteger)arg1;
 @end
 
 @interface UIApplication (DefaultPage)
@@ -96,10 +99,16 @@ static NSInteger intValueForKey(NSString *key, NSInteger defaultValue){
 				while(boolValueForKey(kIsAutoSubtractEnabled) && ![self folderIconListAtIndex:pageNum]){
 					pageNum--;
 				}
-				[[self _currentFolderController] _doAutoScrollByPageCount:pageNum - [self currentFolderIconListIndex]];
+				if ([[self _currentFolderController] respondsToSelector:@selector(_doAutoScrollByPageCount:)])
+					[[self _currentFolderController] _doAutoScrollByPageCount:pageNum - [self currentFolderIconListIndex]];
+				else
+					[[self _currentFolderController] setCurrentPageIndex:pageNum animated:YES];
 			}
 		} else if(pageNum == -1){
-			[self _presentRightEdgeSpotlight:YES];
+			if ([self respondsToSelector:@selector(_presentRightEdgeSpotlight:)])
+				[self _presentRightEdgeSpotlight:YES];
+			else if ([self respondsToSelector:@selector(_presentRightEdgeTodayView:)])
+				[self _presentRightEdgeTodayView:YES];
 		} else if([self _iconListIndexIsValid: pageNum] && [self currentIconListIndex] != pageNum){
 			%orig;
 			[self scrollToIconListAtIndex:pageNum animate:YES];
@@ -141,7 +150,10 @@ static NSInteger intValueForKey(NSString *key, NSInteger defaultValue){
 	[[ALApplicationList sharedApplicationList] applicationsFilteredUsingPredicate:nil onlyVisible:YES titleSortedIdentifiers:&sortedDisplayIdentifiers];
 	if (boolValueForKey(kIsEnabled) && boolValueForKey(kIsDefaultDownloadPage) && ![sortedDisplayIdentifiers containsObject:[arg1 applicationBundleID]]) {
 		NSInteger downloadPageNum = intValueForKey(kDownloadPageNumber, 0);
-		[self removeIcon:arg1 compactFolder:NO];
+		if ([self respondsToSelector:@selector(removeIcon:compactFolder:)])
+			[self removeIcon:arg1 compactFolder:NO];
+		else if ([self respondsToSelector:@selector(removeIcon:options:)])
+			[self removeIcon:arg1 options:0];
 		[self insertIcon:arg1 intoListView:[self iconListViewAtIndex:downloadPageNum inFolder:[self rootFolder] createIfNecessary:YES] iconIndex:([self maxIconCountForListInFolderClass:[[self rootFolder] class]] - 1) moveNow:YES];
 	}
 	%orig(arg1, arg2, arg3, arg4);

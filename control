@@ -1,7 +1,7 @@
 Package: com.dgh0st.defaultpage
 Name: DefaultPage
 Depends: mobilesubstrate, applist, preferenceloader
-Version: 0.0.15
+Version: 0.0.16
 Architecture: iphoneos-arm
 Description: Set the default homescreen page.
 Maintainer: DGh0st <deeppwnage@yahoo.com>

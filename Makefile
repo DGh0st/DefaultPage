@@ -1,14 +1,13 @@
 export ARCHS = armv7 arm64
 export TARGET = iphone:clang:8.1:latest
 
-PACKAGE_VERSION = 0.0.15-2
+PACKAGE_VERSION = $(THEOS_PACKAGE_BASE_VERSION)
 
 include $(THEOS)/makefiles/common.mk
 
 TWEAK_NAME = DefaultPage
 DefaultPage_FILES = Tweak.xm
 DefaultPage_FRAMEWORKS = UIKit
-DefaultPage_LDFLAGS += -Wl,-segalign,4000
 DefaultPage_LIBRARIES = applist
 
 include $(THEOS_MAKE_PATH)/tweak.mk

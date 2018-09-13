@@ -6,8 +6,9 @@
 -(NSDictionary *)applicationsFilteredUsingPredicate:(NSPredicate *)predicate onlyVisible:(BOOL)onlyVisible titleSortedIdentifiers:(NSArray **)outSortedByTitle;
 @end
 
-
 @interface SBIconController : UIViewController 
++(id)sharedInstance;
+-(void)handleHomeButtonTap;
 -(BOOL)isNewsstandOpen;
 -(BOOL)hasOpenFolder;
 -(BOOL)_iconListIndexIsValid:(NSInteger)arg1;
@@ -170,6 +171,14 @@ static NSInteger intValueForKey(NSString *key, NSInteger defaultValue){
 		}
 	}
 	%orig;
+}
+%end
+
+%hook SpringBoard
+-(void)applicationDidFinishLaunching:(id)arg1 {
+	%orig;
+
+	[[%c(SBIconController) sharedInstance] handleHomeButtonTap];
 }
 %end
 

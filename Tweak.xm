@@ -6,7 +6,7 @@
 -(NSDictionary *)applicationsFilteredUsingPredicate:(NSPredicate *)predicate onlyVisible:(BOOL)onlyVisible titleSortedIdentifiers:(NSArray **)outSortedByTitle;
 @end
 
-@interface SBIconController : UIViewController 
+@interface SBIconController : UIViewController
 +(id)sharedInstance;
 -(void)handleHomeButtonTap;
 -(BOOL)isNewsstandOpen;
@@ -174,14 +174,6 @@ static NSInteger intValueForKey(NSString *key, NSInteger defaultValue){
 }
 %end
 
-%hook SpringBoard
--(void)applicationDidFinishLaunching:(id)arg1 {
-	%orig;
-
-	[[%c(SBIconController) sharedInstance] handleHomeButtonTap];
-}
-%end
-
 %dtor {
 	CFNotificationCenterRemoveObserver(CFNotificationCenterGetDarwinNotifyCenter(),
 										NULL,
@@ -196,4 +188,11 @@ static NSInteger intValueForKey(NSString *key, NSInteger defaultValue){
 				    CFSTR("com.dgh0st.defaultpage/settingschanged"),
 				    NULL,
 				    CFNotificationSuspensionBehaviorDeliverImmediately);
+
+	int notify_token;
+	notify_register_dispatch("com.apple.springboard.DeviceLockStatusChanged", &notify_token, dispatch_get_main_queue(), ^(int token) {
+		// Go to the correct homescreen after a respring
+		[[%c(SBIconController) sharedInstance] handleHomeButtonTap];
+		notify_cancel(token);
+	});
 }

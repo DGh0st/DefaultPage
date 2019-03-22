@@ -37,10 +37,10 @@
 +(id)sharedApplication;
 @end
 
-@interface SpringBoard
+@interface SpringBoard : UIApplication
 -(void)_handleMenuButtonEvent;
 -(void)_simulateHomeButtonPress;
--(BOOL)respondsToSelector:(SEL)aSelector;
+-(id)_accessibilityFrontMostApplication;
 @end
 
 @interface SBLeafIcon
@@ -83,6 +83,18 @@ static NSInteger intValueForKey(NSString *key, NSInteger defaultValue){
 	return temp;
 }
 
+static void DeviceLockStatusChanged() {
+	static BOOL isFirstDeviceLockStatusChange = YES;
+	if (boolValueForKey(kIsEnabled)) {
+		NSInteger pageNum = intValueForKey(kPageNumber, 0);
+		SBIconController *iconController = [%c(SBIconController) sharedInstance];
+		if (isFirstDeviceLockStatusChange || (boolValueForKey(kIsUnlockResetEnabled) && [iconController _iconListIndexIsValid: pageNum] && [iconController currentIconListIndex] != pageNum)) {
+			[iconController scrollToIconListAtIndex:pageNum animate:NO];
+			isFirstDeviceLockStatusChange = NO;
+		}
+	}
+}
+
 %hook SBIconController
 -(void)handleHomeButtonTap {
 	if(boolValueForKey(kIsEnabled)){
@@ -90,7 +102,7 @@ static NSInteger intValueForKey(NSString *key, NSInteger defaultValue){
 		while(boolValueForKey(kIsAutoSubtractEnabled) && ![self _iconListIndexIsValid:pageNum] && pageNum > 0){
 			pageNum--;
 		}
-		if(([%c(self) respondsToSelector:@selector(isNewsstandOpen)] && [self isNewsstandOpen]) || (!boolValueForKey(kIsFolderPagingEnabled) && [self hasOpenFolder])){
+		if(([self respondsToSelector:@selector(isNewsstandOpen)] && [self isNewsstandOpen]) || (!boolValueForKey(kIsFolderPagingEnabled) && [self hasOpenFolder])){
 			%orig;
 		} else 	if(boolValueForKey(kIsFolderPagingEnabled) && [self hasOpenFolder]){
 			pageNum = intValueForKey(kPageNumber, 0);
@@ -111,28 +123,11 @@ static NSInteger intValueForKey(NSString *key, NSInteger defaultValue){
 			else if ([self respondsToSelector:@selector(_presentRightEdgeTodayView:)])
 				[self _presentRightEdgeTodayView:YES];
 		} else if([self _iconListIndexIsValid: pageNum] && [self currentIconListIndex] != pageNum){
-			%orig;
+			// %orig; // not sure what the side effects are of not calling this are
 			[self scrollToIconListAtIndex:pageNum animate:YES];
 		}
 	} else {
 		%orig;
-	}
-}
-
--(void)_lockScreenUIWillLock:(id)arg1{
-	if (boolValueForKey(kIsEnabled) && boolValueForKey(kIsForceHomescreenEnabled)) {
-		if ([(SpringBoard *)[%c(UIApplication) sharedApplication] respondsToSelector:@selector(_handleMenuButtonEvent)]) {
-			[(SpringBoard *)[%c(UIApplication) sharedApplication] _handleMenuButtonEvent];
-		} else {
-			[(SpringBoard *)[%c(UIApplication) sharedApplication] _simulateHomeButtonPress];
-		}
-	}
-	%orig(arg1);
-	if(boolValueForKey(kIsEnabled)){
-		NSInteger pageNum = intValueForKey(kPageNumber, 0);
-		if(boolValueForKey(kIsUnlockResetEnabled) && [self _iconListIndexIsValid: pageNum] && [self currentIconListIndex] != pageNum){
-			[self scrollToIconListAtIndex:pageNum animate:NO];
-		}
 	}
 }
 
@@ -163,7 +158,7 @@ static NSInteger intValueForKey(NSString *key, NSInteger defaultValue){
 
 %hook SBDashBoardViewController
 -(void)deactivate {
-	if (boolValueForKey(kIsEnabled) && boolValueForKey(kIsForceHomescreenEnabled)) {
+	if (boolValueForKey(kIsEnabled) && boolValueForKey(kIsForceHomescreenEnabled) && [(SpringBoard *)[UIApplication sharedApplication] _accessibilityFrontMostApplication] != nil) {
 		if ([(SpringBoard *)[%c(UIApplication) sharedApplication] respondsToSelector:@selector(_handleMenuButtonEvent)]) {
 			[(SpringBoard *)[%c(UIApplication) sharedApplication] _handleMenuButtonEvent];
 		} else {
@@ -179,6 +174,11 @@ static NSInteger intValueForKey(NSString *key, NSInteger defaultValue){
 										NULL,
 										CFSTR("com.dgh0st.defaultpage/settingschanged"),
 										NULL);
+
+	CFNotificationCenterRemoveObserver(CFNotificationCenterGetDarwinNotifyCenter(),
+										NULL,
+										CFSTR("com.apple.springboard.DeviceLockStatusChanged"),
+										NULL);
 }
 
 %ctor {
@@ -189,10 +189,10 @@ static NSInteger intValueForKey(NSString *key, NSInteger defaultValue){
 				    NULL,
 				    CFNotificationSuspensionBehaviorDeliverImmediately);
 
-	int notify_token;
-	notify_register_dispatch("com.apple.springboard.DeviceLockStatusChanged", &notify_token, dispatch_get_main_queue(), ^(int token) {
-		// Go to the correct homescreen after a respring
-		[[%c(SBIconController) sharedInstance] handleHomeButtonTap];
-		notify_cancel(token);
-	});
+    CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),
+				    NULL,
+				    (CFNotificationCallback)DeviceLockStatusChanged,
+				    CFSTR("com.apple.springboard.DeviceLockStatusChanged"),
+				    NULL,
+				    CFNotificationSuspensionBehaviorDeliverImmediately);
 }

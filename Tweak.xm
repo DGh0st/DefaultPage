@@ -26,6 +26,8 @@
 -(void)removeIcon:(id)arg1 options:(unsigned long long)arg2;
 -(id)folderIconListAtIndex:(NSInteger)arg1 ;
 -(id)_currentFolderController;
+-(void)setIsEditing:(BOOL)arg1;
+-(BOOL)isEditing;
 @end
 
 @interface SBFolderController
@@ -123,6 +125,10 @@ static void ApplicationDidFinishLaunch() {
 %hook SBIconController
 -(void)handleHomeButtonTap {
 	if (isEnabled) {
+		if ([self isEditing]) {
+			[self setIsEditing:NO]; // end editing mode
+			return;
+		}
 		NSInteger pageNum = pageNumber;
 		while (isAutoSubtractEnabled && ![self _iconListIndexIsValid:pageNum] && pageNum > 0) {
 			pageNum--;

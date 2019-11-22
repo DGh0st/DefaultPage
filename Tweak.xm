@@ -6,7 +6,47 @@
 -(NSDictionary *)applicationsFilteredUsingPredicate:(NSPredicate *)predicate onlyVisible:(BOOL)onlyVisible titleSortedIdentifiers:(NSArray **)outSortedByTitle;
 @end
 
-@interface SBIconController : UIViewController
+@interface SBFolderIcon : NSObject // 4 - 13
+@end
+
+@interface SBRootFolder : NSObject // 4 - 13
+@property (assign, nonatomic, weak) SBFolderIcon *icon; // 6 - 13
+@end
+
+@interface SBIconListModel : NSObject // iOS 4 - 13
+-(BOOL)addIcon:(id)arg1; // iOS 4 - 13
+@end
+
+@interface SBIconListView : UIView // iOS 4 - 13
+-(SBIconListModel *)model; // iOS 4 - 13
+@end
+
+@interface SBFolderController : UIViewController // iOS 7 - 13
+@property (nonatomic,readonly) NSInteger firstIconPageIndex; // iOS 13
+@property (nonatomic,readonly) NSInteger lastIconPageIndex; // iOS 13
+@property (nonatomic,readonly) NSInteger defaultPageIndex; // iOS 13
+@property (assign, nonatomic, weak) id folderDelegate; // iOS 12 - 13
+@property(readonly, nonatomic) NSInteger currentPageIndex;
+-(BOOL)setCurrentPageIndex:(NSInteger)arg1 animated:(BOOL)arg2;
+-(void)_doAutoScrollByPageCount:(NSInteger)arg1;
+@end
+
+@interface SBRootFolderController : SBFolderController // iOS 7 - 13
+@property (nonatomic,readonly) NSInteger todayViewPageIndex; // iOS 13
+@end
+
+@interface SBHIconManager : NSObject // iOS 13
+@property (nonatomic,retain) SBRootFolder *rootFolder; // iOS 13
+@property (nonatomic,retain) SBRootFolderController *rootFolderController; // iOS 13
+-(BOOL)isEditing; // iOS 13
+-(void)setEditing:(BOOL)arg1; // iOS 13
+-(void)removeIcon:(id)arg1 options:(NSUInteger)arg2 completion:(id)arg3; // iOS 13
+// -(void)addIcons:(id)arg1 intoFolderIcon:(id)arg2 openFolderOnFinish:(BOOL)arg3 complete:(id)arg4;
+-(SBIconListView *)iconListViewAtIndex:(NSUInteger)arg1 inFolder:(id)arg2 createIfNecessary:(BOOL)arg3; // iOS 13
+@end
+
+@interface SBIconController : UIViewController // iOS 3 - 13
+@property (nonatomic,readonly) SBHIconManager *iconManager; // iOS 13
 +(id)sharedInstance;
 -(void)handleHomeButtonTap;
 -(BOOL)isNewsstandOpen;
@@ -25,15 +65,15 @@
 -(void)removeIcon:(id)arg1 compactFolder:(BOOL)arg2;
 -(void)removeIcon:(id)arg1 options:(unsigned long long)arg2;
 -(id)folderIconListAtIndex:(NSInteger)arg1 ;
--(id)_currentFolderController;
+-(id)_currentFolderController; // iOS 7 - 13
+-(id)_rootFolderController; // iOS 7 - 13
 -(void)setIsEditing:(BOOL)arg1;
 -(BOOL)isEditing;
 @end
 
-@interface SBFolderController
-@property(readonly, nonatomic) NSInteger currentPageIndex;
--(BOOL)setCurrentPageIndex:(NSInteger)arg1 animated:(BOOL)arg2;
--(void)_doAutoScrollByPageCount:(NSInteger)arg1;
+@interface SBCoverSheetPresentationManager : NSObject // iOS 11 - 13
++(id)sharedInstance; // iOS 11 - 13
+-(BOOL)hasBeenDismissedSinceKeybagLock; // iOS 11 - 131
 @end
 
 @interface UIApplication (DefaultPage)
@@ -106,8 +146,15 @@ static void DeviceLockStatusChanged() {
 	static BOOL isFirstDeviceLockStatusChange = YES;
 	if (isEnabled) {
 		SBIconController *iconController = [%c(SBIconController) sharedInstance];
-		if (isFirstDeviceLockStatusChange || (isUnlockResetEnabled && [iconController _iconListIndexIsValid: pageNumber] && [iconController currentIconListIndex] != pageNumber)) {
-			[iconController scrollToIconListAtIndex:pageNumber animate:NO];
+
+		if (isFirstDeviceLockStatusChange || isUnlockResetEnabled) {
+			if ([iconController respondsToSelector:@selector(_iconListIndexIsValid)] && [iconController _iconListIndexIsValid: pageNumber] && [iconController currentIconListIndex] != pageNumber) {
+				[iconController scrollToIconListAtIndex:pageNumber animate:NO];
+			} else {
+				SBRootFolderController *rootFolderController = [iconController _rootFolderController];
+				if (rootFolderController.defaultPageIndex != rootFolderController.currentPageIndex)
+					[rootFolderController setCurrentPageIndex:rootFolderController.defaultPageIndex animated:NO];
+			}
 			isFirstDeviceLockStatusChange = NO;
 		}
 	}
@@ -122,6 +169,7 @@ static void ApplicationDidFinishLaunch() {
 	}
 }
 
+%group preiOS13
 %hook SBIconController
 -(void)handleHomeButtonTap {
 	if (isEnabled) {
@@ -199,6 +247,109 @@ static void ApplicationDidFinishLaunch() {
 	%orig;
 }
 %end
+%end
+
+%group iOS13plus
+%hook SBFolderController
+-(NSInteger)defaultPageIndex {
+	if (isEnabled) {
+		NSInteger pageNum = pageNumber;
+
+		// get a valid page number
+		if (isAutoSubtractEnabled && pageNum > self.lastIconPageIndex - self.firstIconPageIndex && pageNum > 0)
+			pageNum = self.lastIconPageIndex - self.firstIconPageIndex;
+
+		// folder's delegate is of type SBRootFolderController
+		// root folder's delegate is of type SBHIconManager
+		if ([self.folderDelegate isKindOfClass:%c(SBRootFolderController)]) {
+			if (!isFolderPagingEnabled || pageNum == -1)
+				return %orig();
+			return pageNum + self.firstIconPageIndex;
+		}
+
+		// spotlight
+		if (pageNum == -1)
+			return %orig();
+
+		// default selected + offset of first page
+		return pageNum + self.firstIconPageIndex;
+	}
+	return %orig();
+}
+%end
+
+%hook SBIconController
+-(void)handleHomeButtonTap {
+	if (isEnabled) {
+		// end editing mode
+		if ([self.iconManager isEditing]) {
+			[self.iconManager setEditing:NO];
+			return;
+		}
+
+		SBFolderController *folderController = [self _currentFolderController];
+		if ([folderController isKindOfClass:%c(SBRootFolderController)]) {
+			SBRootFolderController *rootFolderController = (SBRootFolderController *)folderController;
+
+			// scroll to today page view if needed otherwise do default behavior of scrolling to default page
+			if (pageNumber == -1 && rootFolderController.todayViewPageIndex != NSIntegerMax)
+				[rootFolderController setCurrentPageIndex:rootFolderController.todayViewPageIndex animated:YES];
+			else
+				[rootFolderController setCurrentPageIndex:rootFolderController.defaultPageIndex animated:YES];
+		} else if (isFolderPagingEnabled) {
+			// close out of folder if same page close is enabled otherwise scroll to selected default page
+			if (isPageNumberFolderCloseEnabled && folderController.defaultPageIndex == folderController.currentPageIndex)
+				%orig();
+			else
+				[folderController setCurrentPageIndex:folderController.defaultPageIndex animated:YES];
+		} else {
+			%orig();
+		}
+	} else {
+		%orig();
+	}
+}
+
+-(void)viewWillAppear:(BOOL)arg1 {
+	if (isEnabled) {
+		SBFolderController *folderController = [self _currentFolderController];
+		if (isAppCloseResetEnabled && folderController.defaultPageIndex != folderController.currentPageIndex)
+			[folderController setCurrentPageIndex:folderController.defaultPageIndex animated:NO];
+	}
+	%orig(arg1);
+}
+%end
+
+%hook SBHIconManager
+-(void)addNewIconToDesignatedLocation:(id)arg1 animate:(BOOL)arg2 scrollToList:(BOOL)arg3 saveIconState:(BOOL)arg4 {
+	NSArray *sortedDisplayIdentifiers;
+	[[ALApplicationList sharedApplicationList] applicationsFilteredUsingPredicate:nil onlyVisible:YES titleSortedIdentifiers:&sortedDisplayIdentifiers];
+	if (isEnabled && isDefaultDownloadPage && ![sortedDisplayIdentifiers containsObject:[arg1 applicationBundleID]]) {
+		[self removeIcon:arg1 options:0 completion:^{
+			[[[self iconListViewAtIndex:downloadPageNumber inFolder:self.rootFolder createIfNecessary:YES] model] addIcon:arg1];
+		}];
+	}
+	%orig(arg1, arg2, arg3, arg4);
+}
+%end
+
+%hook SBCoverSheetSlidingViewController
+-(void)_dismissCoverSheetAnimated:(BOOL)arg1 withCompletion:(void(^)())arg2 {
+	if (isEnabled && isForceHomescreenEnabled) {
+		void (^completion)() = ^{
+			if (arg2 != nil)
+				arg2();
+
+			if ([[%c(SBCoverSheetPresentationManager) sharedInstance] hasBeenDismissedSinceKeybagLock] && [(SpringBoard *)[UIApplication sharedApplication] _accessibilityFrontMostApplication] != nil)
+				[(SpringBoard *)[%c(UIApplication) sharedApplication] _simulateHomeButtonPress];
+		};
+		%orig(arg1, completion);
+	} else {
+		%orig(arg1, arg2);
+	}
+}
+%end
+%end
 
 %dtor {
 	CFNotificationCenterRemoveObserver(CFNotificationCenterGetDarwinNotifyCenter(),
@@ -211,32 +362,40 @@ static void ApplicationDidFinishLaunch() {
 										CFSTR("com.apple.springboard.DeviceLockStatusChanged"),
 										NULL);
 
-	CFNotificationCenterRemoveObserver(CFNotificationCenterGetDarwinNotifyCenter(),
-										NULL,
-										CFSTR("UIApplicationDidFinishLaunchingNotification"),
-										NULL);
+	if (%c(SBHIconManager) == nil) {
+		CFNotificationCenterRemoveObserver(CFNotificationCenterGetDarwinNotifyCenter(),
+											NULL,
+											CFSTR("UIApplicationDidFinishLaunchingNotification"),
+											NULL);
+	}
 }
 
 %ctor {
 	PreferencesChanged();
-    CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),
-				    NULL,
-				    (CFNotificationCallback)PreferencesChanged,
-				    CFSTR("com.dgh0st.defaultpage/settingschanged"),
-				    NULL,
-				    CFNotificationSuspensionBehaviorDeliverImmediately);
+	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),
+					NULL,
+					(CFNotificationCallback)PreferencesChanged,
+					CFSTR("com.dgh0st.defaultpage/settingschanged"),
+					NULL,
+					CFNotificationSuspensionBehaviorDeliverImmediately);
 
-    CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),
-				    NULL,
-				    (CFNotificationCallback)DeviceLockStatusChanged,
-				    CFSTR("com.apple.springboard.DeviceLockStatusChanged"),
-				    NULL,
-				    CFNotificationSuspensionBehaviorDeliverImmediately);
+	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),
+					NULL,
+					(CFNotificationCallback)DeviceLockStatusChanged,
+					CFSTR("com.apple.springboard.DeviceLockStatusChanged"),
+					NULL,
+					CFNotificationSuspensionBehaviorDeliverImmediately);
 
-    CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),
-				    NULL,
-				    (CFNotificationCallback)ApplicationDidFinishLaunch,
-				    CFSTR("UIApplicationDidFinishLaunchingNotification"),
-				    NULL,
-				    CFNotificationSuspensionBehaviorDeliverImmediately);
+	if (%c(SBHIconManager)) {
+		%init(iOS13plus);
+	} else {
+		CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),
+						NULL,
+						(CFNotificationCallback)ApplicationDidFinishLaunch,
+						CFSTR("UIApplicationDidFinishLaunchingNotification"),
+						NULL,
+						CFNotificationSuspensionBehaviorDeliverImmediately);
+
+		%init(preiOS13);
+	}
 }

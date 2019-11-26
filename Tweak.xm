@@ -73,7 +73,7 @@
 
 @interface SBCoverSheetPresentationManager : NSObject // iOS 11 - 13
 +(id)sharedInstance; // iOS 11 - 13
--(BOOL)hasBeenDismissedSinceKeybagLock; // iOS 11 - 131
+-(BOOL)hasBeenDismissedSinceKeybagLock; // iOS 11 - 13.1
 @end
 
 @interface UIApplication (DefaultPage)
@@ -148,8 +148,9 @@ static void DeviceLockStatusChanged() {
 		SBIconController *iconController = [%c(SBIconController) sharedInstance];
 
 		if (isFirstDeviceLockStatusChange || isUnlockResetEnabled) {
-			if ([iconController respondsToSelector:@selector(_iconListIndexIsValid)] && [iconController _iconListIndexIsValid: pageNumber] && [iconController currentIconListIndex] != pageNumber) {
-				[iconController scrollToIconListAtIndex:pageNumber animate:NO];
+			if ([iconController respondsToSelector:@selector(_iconListIndexIsValid:)]) {
+				if ([iconController _iconListIndexIsValid: pageNumber] && [iconController currentIconListIndex] != pageNumber)
+					[iconController scrollToIconListAtIndex:pageNumber animate:NO];
 			} else {
 				SBRootFolderController *rootFolderController = [iconController _rootFolderController];
 				if (rootFolderController.defaultPageIndex != rootFolderController.currentPageIndex)
@@ -234,7 +235,9 @@ static void ApplicationDidFinishLaunch() {
 	%orig(arg1, arg2, arg3, arg4);
 }
 %end
+%end
 
+%group forceHomescreenpreiOS11
 %hook SBDashBoardViewController
 -(void)deactivate {
 	if (isEnabled && isForceHomescreenEnabled && [(SpringBoard *)[UIApplication sharedApplication] _accessibilityFrontMostApplication] != nil) {
@@ -245,6 +248,25 @@ static void ApplicationDidFinishLaunch() {
 		}
 	}
 	%orig;
+}
+%end
+%end
+
+%group forceHomescreeniOS11plus
+%hook SBCoverSheetSlidingViewController
+-(void)_dismissCoverSheetAnimated:(BOOL)arg1 withCompletion:(void(^)())arg2 {
+	if (isEnabled && isForceHomescreenEnabled) {
+		void (^completion)() = ^{
+			if (arg2 != nil)
+				arg2();
+
+			if ([[%c(SBCoverSheetPresentationManager) sharedInstance] hasBeenDismissedSinceKeybagLock] && [(SpringBoard *)[UIApplication sharedApplication] _accessibilityFrontMostApplication] != nil)
+				[(SpringBoard *)[%c(UIApplication) sharedApplication] _simulateHomeButtonPress];
+		};
+		%orig(arg1, completion);
+	} else {
+		%orig(arg1, arg2);
+	}
 }
 %end
 %end
@@ -332,23 +354,6 @@ static void ApplicationDidFinishLaunch() {
 	%orig(arg1, arg2, arg3, arg4);
 }
 %end
-
-%hook SBCoverSheetSlidingViewController
--(void)_dismissCoverSheetAnimated:(BOOL)arg1 withCompletion:(void(^)())arg2 {
-	if (isEnabled && isForceHomescreenEnabled) {
-		void (^completion)() = ^{
-			if (arg2 != nil)
-				arg2();
-
-			if ([[%c(SBCoverSheetPresentationManager) sharedInstance] hasBeenDismissedSinceKeybagLock] && [(SpringBoard *)[UIApplication sharedApplication] _accessibilityFrontMostApplication] != nil)
-				[(SpringBoard *)[%c(UIApplication) sharedApplication] _simulateHomeButtonPress];
-		};
-		%orig(arg1, completion);
-	} else {
-		%orig(arg1, arg2);
-	}
-}
-%end
 %end
 
 %dtor {
@@ -397,5 +402,11 @@ static void ApplicationDidFinishLaunch() {
 						CFNotificationSuspensionBehaviorDeliverImmediately);
 
 		%init(preiOS13);
+	}
+
+	if (%c(SBCoverSheetSlidingViewController)) {
+		%init(forceHomescreeniOS11plus);
+	} else {
+		%init(forceHomescreenpreiOS11);
 	}
 }

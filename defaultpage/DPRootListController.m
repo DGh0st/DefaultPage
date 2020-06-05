@@ -1,4 +1,5 @@
 #include "DPRootListController.h"
+#include <spawn.h>
 
 @implementation DPRootListController
 
@@ -16,10 +17,11 @@
 		[email setSubject:@"DefaultPage Support"];
 		[email setToRecipients:[NSArray arrayWithObjects:@"deeppwnage@yahoo.com", nil]];
 		[email addAttachmentData:[NSData dataWithContentsOfFile:@"/var/mobile/Library/Preferences/com.dgh0st.defaultpage.plist"] mimeType:@"application/xml" fileName:@"Prefs.plist"];
-		#pragma GCC diagnostic push
-		#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-		system("/usr/bin/dpkg -l >/tmp/dpkgl.log");
-		#pragma GCC diagnostic pop
+		pid_t pid;
+		const char *argv[] = { "/usr/bin/dpkg", "-l" ">" "/tmp/dpkgl.log" };
+		extern char *const *environ;
+		posix_spawn(&pid, argv[0], NULL, NULL, (char *const *)argv, environ);
+		waitpid(pid, NULL, 0);
 		[email addAttachmentData:[NSData dataWithContentsOfFile:@"/tmp/dpkgl.log"] mimeType:@"text/plain" fileName:@"dpkgl.txt"];
 		[self.navigationController presentViewController:email animated:YES completion:nil];
 		[email setMailComposeDelegate:self];
@@ -31,6 +33,9 @@
     [self dismissViewControllerAnimated: YES completion: nil];
 }
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+
 -(void)donate{
 	[[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://paypal.me/DGhost"]];
 }
@@ -38,6 +43,8 @@
 -(void)follow{
 	[[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://mobile.twitter.com/D_Gh0st"]];
 }
+
+#pragma clang diagnostic pop
 
 -(void)viewDidLoad {
 	[super viewDidLoad];
